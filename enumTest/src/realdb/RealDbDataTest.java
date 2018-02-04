@@ -1,6 +1,8 @@
 package realdb;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 public class RealDbDataTest {
@@ -27,51 +29,27 @@ public class RealDbDataTest {
 
     private boolean readFromFastdb(LineData lineData)
     {
-        String[] values = { "guid", "Line", "Substation", "3636" };
+        List<String> values = new ArrayList<>();
+        values.add("guid");
+        values.add("Line");
+        values.add("Substation");
+        values.add("3636");
 
-        try {
-            setValue(lineData);
+        boolean result = RealDbDataHelper.setDataValues(lineData, values);
+        if (result) {
+            System.out.println(lineData.getMrid() + ";" + lineData.getPsrType() + ";"
+            + lineData.getEc_type() + ";" + lineData.getEc_rid());
         }
-        catch (IllegalAccessException ex)
-        {
-            ex.printStackTrace();
-        }
-
-        System.out.println(lineData.toString());
-
-        return false;
+        return result;
     }
 
     private boolean writeIntoFastdb(LineData lineData)
     {
-
-        return false;
-    }
-
-    private void setValue(Object object) throws IllegalAccessException
-    {
-        Stack<Class<?>> classStack = new Stack<>();
-        Class currClass = object.getClass();
-        if (currClass == null) {
-            return;
+        List<String> values = new ArrayList<>();
+        boolean result = RealDbDataHelper.getDataValues(lineData, values);
+        if (result) {
+            System.out.println(values.toString());
         }
-        classStack.push(currClass);
-
-        Class parentClass = currClass.getSuperclass();
-        while (parentClass != null
-                && !parentClass.getName().equals("java.lang.Object"))
-        {
-            classStack.push(parentClass);
-            parentClass = parentClass.getSuperclass();
-        }
-
-        while (!classStack.isEmpty()) {
-            Class current = classStack.pop();
-            Field[] fields = current.getDeclaredFields();
-            for (Field field : fields) {
-                System.out.println(field.getName());
-                field.set(object, "11");
-            }
-        }
+        return result;
     }
 }
