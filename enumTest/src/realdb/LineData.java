@@ -13,23 +13,6 @@ public class LineData extends PowerSystemResourceData {
         return super.getFieldCount() + count;
     }
 
-    public void setValues(String[] values) throws IllegalAccessException
-    {
-        if (values.length != getFieldCount()) {
-            System.out.println("values.length: " + values.length
-                    + "!= getFieldCount()" + getFieldCount());
-            return;
-        }
-
-        super.setValues(values);
-        int parentFieldCount = super.getFieldCount();
-        Field[] fields = LineData.class.getDeclaredFields();
-        int index = 0;
-        for (Field field : fields) {
-            field.set(this, values[parentFieldCount + (index++)]);
-        }
-    }
-
     public String getEc_type() {
         return ec_type;
     }
