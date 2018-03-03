@@ -22,7 +22,7 @@ public class Bank {
     public void transfer(int from, int to, double amount) throws InterruptedException {
         bankLock.lock();
         try {
-            if (accounts[from] < amount) {
+            while (accounts[from] < amount) {
                 sufficientFunds.await();
             }
             System.out.print(Thread.currentThread());

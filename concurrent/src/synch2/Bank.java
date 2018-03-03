@@ -17,7 +17,7 @@ public class Bank {
     }
 
     public synchronized void transfer(int from, int to, double amount) throws InterruptedException {
-        if (accounts[from] < amount) {
+        while (accounts[from] < amount) {
             wait();
         }
         System.out.print(Thread.currentThread());
