@@ -1,0 +1,4 @@
+Mnifest-Version: 1.0
+Sealed: true
+Main-Class: InfiniteProgress.Demo
+Class-Path: 
