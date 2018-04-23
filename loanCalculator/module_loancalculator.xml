@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_loancalculator" default="compile.module.loancalculator">
+  <dirname property="module.loancalculator.basedir" file="${ant.file.module_loancalculator}"/>
+  
+  <property name="module.jdk.home.loancalculator" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.loancalculator" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.loancalculator" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.loancalculator" value="-encoding UTF-8 -source 1.8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="loancalculator.output.dir" value="${module.loancalculator.basedir}/out/production/loanCalculator"/>
+  <property name="loancalculator.testoutput.dir" value="${module.loancalculator.basedir}/out/test/loanCalculator"/>
+  
+  <path id="loancalculator.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="loancalculator.module.production.classpath">
+    <path refid="${module.jdk.classpath.loancalculator}"/>
+  </path>
+  
+  <path id="loancalculator.runtime.production.module.classpath">
+    <pathelement location="${loancalculator.output.dir}"/>
+  </path>
+  
+  <path id="loancalculator.module.classpath">
+    <path refid="${module.jdk.classpath.loancalculator}"/>
+    <pathelement location="${loancalculator.output.dir}"/>
+  </path>
+  
+  <path id="loancalculator.runtime.module.classpath">
+    <pathelement location="${loancalculator.testoutput.dir}"/>
+    <pathelement location="${loancalculator.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.loancalculator">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.loancalculator">
+    <patternset refid="excluded.from.module.loancalculator"/>
+  </patternset>
+  
+  <path id="loancalculator.module.sourcepath">
+    <dirset dir="${module.loancalculator.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.loancalculator" depends="compile.module.loancalculator.production,compile.module.loancalculator.tests" description="Compile module loanCalculator"/>
+  
+  <target name="compile.module.loancalculator.production" depends="register.custom.compilers" description="Compile module loanCalculator; production classes">
+    <mkdir dir="${loancalculator.output.dir}"/>
+    <javac2 destdir="${loancalculator.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.loancalculator}/javac">
+      <compilerarg line="${compiler.args.loancalculator}"/>
+      <bootclasspath refid="loancalculator.module.bootclasspath"/>
+      <classpath refid="loancalculator.module.production.classpath"/>
+      <src refid="loancalculator.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.loancalculator"/>
+    </javac2>
+    
+    <copy todir="${loancalculator.output.dir}">
+      <fileset dir="${module.loancalculator.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.loancalculator.tests" depends="register.custom.compilers,compile.module.loancalculator.production" description="compile module loanCalculator; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.loancalculator" description="cleanup module">
+    <delete dir="${loancalculator.output.dir}"/>
+    <delete dir="${loancalculator.testoutput.dir}"/>
+  </target>
+</project>

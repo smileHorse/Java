@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact build-on-make="true" name="loanCalculator:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/loanCalculator_jar</output-path>
+    <root id="root">
+      <element id="archive" name="loanCalculator.jar">
+        <element id="directory" name="META-INF">
+          <element id="file-copy" path="$PROJECT_DIR$/src/resources/META-INF/MANIFEST.MF" />
+        </element>
+        <element id="module-output" name="loanCalculator" />
+      </element>
+    </root>
+  </artifact>
+</component>
