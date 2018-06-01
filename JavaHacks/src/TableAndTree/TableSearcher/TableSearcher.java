@@ -1,21 +1,19 @@
 package TableAndTree.TableSearcher;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.store.Directory;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.RAMDirectory;
 
 import javax.swing.event.TableModelEvent;
@@ -23,6 +21,10 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import java.util.ArrayList;
+
+import static org.apache.lucene.search.BooleanClause.Occur.FILTER;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST;
+import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 
 /**
  * This is a TableModel that encapsulates Lucene
@@ -71,6 +73,7 @@ public class TableSearcher extends AbstractTableModel {
      */
     private ArrayList rowToModelIndex = new ArrayList();
 
+
     //Lucene stuff.
 
     /**
@@ -101,6 +104,7 @@ public class TableSearcher extends AbstractTableModel {
      * @param tableModel The table model to decorate
      */
     public TableSearcher(TableModel tableModel) {
+//        analyzer = new WhitespaceAnalyzer();
         analyzer = new StandardAnalyzer();
         tableModelListener = new TableModelHandler();
         setTableModel(tableModel);
@@ -121,6 +125,7 @@ public class TableSearcher extends AbstractTableModel {
      * @param tableModel The new table model to decorate
      */
     public void setTableModel(TableModel tableModel) {
+
         //remove listeners if there...
         if (this.tableModel != null) {
             this.tableModel.removeTableModelListener(tableModelListener);
@@ -139,6 +144,7 @@ public class TableSearcher extends AbstractTableModel {
         fireTableStructureChanged();
     }
 
+
     /**
      * Reset the search results and links to the decorated (inner) table
      * model from this table model.
@@ -147,32 +153,36 @@ public class TableSearcher extends AbstractTableModel {
         try {
             // recreate the RAMDirectory
             directory = new RAMDirectory();
-            IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
-            iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
-            IndexWriter writer = new IndexWriter(directory, iwc);
+
+            IndexWriterConfig config = new IndexWriterConfig(analyzer);
+            IndexWriter writer = new IndexWriter(directory, config);
 
             // iterate through all rows
-            for (int row = 0; row < tableModel.getRowCount(); ++row) {
-                // for each row make a new document
+            for (int row=0; row < tableModel.getRowCount(); row++){
+
+                //for each row make a new document
                 Document document = new Document();
+
                 //add the row number of this row in the decorated table model
                 //this will allow us to retrive the results later
                 //and map this table model's row to a row in the decorated
                 //table model
+//                document.add(new Field(ROW_NUMBER, "" + row, TextField.TYPE_STORED));
                 document.add(new StringField(ROW_NUMBER, "" + row, Field.Store.YES));
+
                 //iterate through all columns
                 //index the value keyed by the column name
                 //NOTE: there could be a problem with using column names with spaces
-                for (int column = 0; column < tableModel.getColumnCount(); column++) {
+                for (int column=0; column < tableModel.getColumnCount(); column++){
                     String columnName = tableModel.getColumnName(column);
                     String columnValue = String.valueOf(tableModel.getValueAt(row, column)).toLowerCase();
+//                    document.add(new Field(columnName, columnValue, TextField.TYPE_STORED));
                     document.add(new StringField(columnName, columnValue, Field.Store.YES));
                 }
                 writer.addDocument(document);
             }
             writer.close();
-
-        } catch (Exception e) {
+        } catch (Exception e){
             e.printStackTrace();
         }
     }
@@ -193,7 +203,7 @@ public class TableSearcher extends AbstractTableModel {
         reindex();
 
         //rerun the search if there is an active search
-        if (isSearching()) {
+        if (isSearching()){
             search(searchString);
         }
     }
@@ -203,41 +213,48 @@ public class TableSearcher extends AbstractTableModel {
      *
      * @param searchString Any valid lucene search string
      */
-    public void search(String searchString) {
-        // if searchStirng is null or empty, clear the search == search all
-        if (searchString == null || searchString.isEmpty()) {
+    public void search(String searchString){
+        //if search string is null or empty, clear the search == search all
+        if (searchString == null || searchString.equals("")){
             clearSearchingState();
             fireTableDataChanged();
             return;
         }
 
         try {
-            // cache search string
+            //cache search String
             this.searchString = searchString;
 
-            // make a new index searcher with the in memory (RAM) index
-            IndexReader reader = DirectoryReader.open(directory);
-            IndexSearcher is = new IndexSearcher(reader);
+            //make a new index searcher with the in memory (RAM) index.
+            DirectoryReader reader = DirectoryReader.open(directory);
+            IndexSearcher searcher = new IndexSearcher(reader);
 
-            // make an array of fields - one for each column
+            //make an array of fields - one for each column
             String[] fields = new String[tableModel.getColumnCount()];
-            for (int t = 0; t < tableModel.getColumnCount(); t++) {
-                fields[t] = tableModel.getColumnName(t);
+            for (int t=0; t<tableModel.getColumnCount(); t++){
+                fields[t]=tableModel.getColumnName(t);
             }
 
             //build a query based on the fields, searchString and cached analyzer
             //NOTE: This is an area for improvement since the MultiFieldQueryParser
             // has some weirdness.
-            Query query = MultiFieldQueryParser.parse(searchString, fields, BooleanClause.Occur.values(), analyzer);
-            // run the search
-            ScoreDoc[] hits = is.search(query, 100).scoreDocs;
-            // reset this table model with the new results
-            resetSearchResults(is, hits);
-        } catch (Exception e) {
+//            Query query = MultiFieldQueryParser.parse(searchString, fields, analyzer);
+//            BooleanClause.Occur[] occurs = {FILTER, FILTER, FILTER, FILTER};
+//            Query query = MultiFieldQueryParser.parse(searchString, fields, occurs, analyzer);
+
+//            TermQuery query = new TermQuery(new Term("列1", searchString));
+            WildcardQuery query = new WildcardQuery(new Term("列1", searchString));
+
+            //run the search
+//            Hits hits = is.search(query);
+            ScoreDoc[] hits = searcher.search(query, 1000).scoreDocs;
+            //reset this table model with the new results
+            resetSearchResults(searcher, hits);
+        } catch (Exception e){
             e.printStackTrace();
         }
 
-        // notify all listeners that the table has been changed
+        //notify all listeners that the table has been changed
         fireTableStructureChanged();
     }
 
@@ -245,28 +262,20 @@ public class TableSearcher extends AbstractTableModel {
      *
      * @param hits The new result set to set this table to.
      */
-    private void resetSearchResults(IndexSearcher is, ScoreDoc[] hits) {
+    private void resetSearchResults(IndexSearcher indexSearcher, ScoreDoc[] hits) {
         try {
-            //clear our index mapping this table model rows to
-            //the decorated inner table model
             rowToModelIndex.clear();
-
-            //iterate through the hits
-            //get the row number stored at the index
-            //that number is the row number of the decorated
-            //tabble model row that we are mapping to
             for (int t = 0; t < hits.length; t++) {
-                Document document = is.doc(hits[t].doc);
-                //Field field = document.getField(ROW_NUMBER);
-                //rowToModelIndex.add(new Integer(field.stringValue()));
+                Document document = indexSearcher.doc(hits[t].doc);
+                rowToModelIndex.add(new Integer(document.get(ROW_NUMBER)));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public int getModelRow(int row) {
-        return ((Integer)rowToModelIndex.get(row)).intValue();
+    private int getModelRow(int row){
+        return ((Integer) rowToModelIndex.get(row)).intValue();
     }
 
     /**
@@ -274,49 +283,41 @@ public class TableSearcher extends AbstractTableModel {
      * Resets the complete dataset of the decorated
      * table model.
      */
-    private void clearSearchingState() {
+    private void clearSearchingState(){
         searchString = null;
         rowToModelIndex.clear();
-        for (int t = 0; t < tableModel.getRowCount(); t++) {
+        for (int t=0; t<tableModel.getRowCount(); t++){
             rowToModelIndex.add(new Integer(t));
         }
     }
 
     // TableModel interface methods
-
-    @Override
     public int getRowCount() {
-        return (tableModel == null) ? 0 : tableModel.getRowCount();
+        return (tableModel == null) ? 0 : rowToModelIndex.size();
     }
 
-    @Override
     public int getColumnCount() {
         return (tableModel == null) ? 0 : tableModel.getColumnCount();
     }
 
-    @Override
     public String getColumnName(int column) {
         return tableModel.getColumnName(column);
     }
 
-    @Override
-    public Class<?> getColumnClass(int columnIndex) {
-        return tableModel.getColumnClass(columnIndex);
+    public Class getColumnClass(int column) {
+        return tableModel.getColumnClass(column);
     }
 
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return tableModel.isCellEditable(getModelRow(rowIndex), columnIndex);
+    public boolean isCellEditable(int row, int column) {
+        return tableModel.isCellEditable(getModelRow(row), column);
     }
 
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        return tableModel.getValueAt(getModelRow(rowIndex), columnIndex);
+    public Object getValueAt(int row, int column) {
+        return tableModel.getValueAt(getModelRow(row), column);
     }
 
-    @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        tableModel.setValueAt(aValue, getModelRow(rowIndex), columnIndex);
+    public void setValueAt(Object aValue, int row, int column) {
+        tableModel.setValueAt(aValue, getModelRow(row), column);
     }
 
     private boolean isSearching() {
@@ -324,7 +325,6 @@ public class TableSearcher extends AbstractTableModel {
     }
 
     private class TableModelHandler implements TableModelListener {
-        @Override
         public void tableChanged(TableModelEvent e) {
             // If we're not searching, just pass the event along.
             if (!isSearching()) {
@@ -340,5 +340,6 @@ public class TableSearcher extends AbstractTableModel {
             fireTableDataChanged();
             return;
         }
+
     }
 }
