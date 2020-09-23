@@ -1,0 +1,113 @@
+package demo.orsoncharts;
+
+import com.orsoncharts.Chart3D;
+import com.orsoncharts.Chart3DFactory;
+import com.orsoncharts.Colors;
+import com.orsoncharts.axis.NumberAxis3D;
+import com.orsoncharts.axis.StandardCategoryAxis3D;
+import com.orsoncharts.data.DefaultKeyedValues;
+import com.orsoncharts.data.category.CategoryDataset3D;
+import com.orsoncharts.data.category.StandardCategoryDataset3D;
+import com.orsoncharts.label.StandardCategoryItemLabelGenerator;
+import com.orsoncharts.legend.LegendAnchor;
+import com.orsoncharts.plot.CategoryPlot3D;
+import com.orsoncharts.util.Orientation;
+import com.orsonpdf.PDFHints;
+import java.awt.BasicStroke;
+import java.awt.Color;
+
+public class BarChart3D2 {
+
+   public static Chart3D createChart(CategoryDataset3D var0) {
+      Chart3D var1 = Chart3DFactory.createBarChart("Average Maximum Temperature", "http://www.worldclimateguide.co.uk/climateguides/", var0, (String)null, (String)null, "Temp °C");
+      var1.getRenderingHints().put(PDFHints.KEY_DRAW_STRING_TYPE, PDFHints.VALUE_DRAW_STRING_TYPE_VECTOR);
+      var1.setLegendPosition(LegendAnchor.BOTTOM_RIGHT, Orientation.VERTICAL);
+      var1.getViewPoint().panLeftRight(-0.05235987755982988D);
+      CategoryPlot3D var2 = (CategoryPlot3D)var1.getPlot();
+      StandardCategoryAxis3D var3 = (StandardCategoryAxis3D)var2.getColumnAxis();
+      NumberAxis3D var4 = (NumberAxis3D)var2.getValueAxis();
+      StandardCategoryAxis3D var5 = (StandardCategoryAxis3D)var2.getRowAxis();
+      var2.setGridlineStrokeForValues(new BasicStroke(0.0F));
+      var3.setLineColor(new Color(0, 0, 0, 0));
+      var4.setLineColor(new Color(0, 0, 0, 0));
+      var5.setLineColor(new Color(0, 0, 0, 0));
+      var2.getRenderer().setColors(Colors.createPastelColors());
+      var2.setToolTipGenerator(new StandardCategoryItemLabelGenerator("%2$s (%3$s) = %4$s degrees"));
+      return var1;
+   }
+
+   public static CategoryDataset3D createDataset() {
+      StandardCategoryDataset3D var0 = new StandardCategoryDataset3D();
+      DefaultKeyedValues var1 = new DefaultKeyedValues();
+      var1.put("Jan", Integer.valueOf(7));
+      var1.put("Feb", Integer.valueOf(7));
+      var1.put("Mar", Integer.valueOf(10));
+      var1.put("Apr", Integer.valueOf(13));
+      var1.put("May", Integer.valueOf(17));
+      var1.put("Jun", Integer.valueOf(20));
+      var1.put("Jul", Integer.valueOf(22));
+      var1.put("Aug", Integer.valueOf(21));
+      var1.put("Sep", Integer.valueOf(19));
+      var1.put("Oct", Integer.valueOf(15));
+      var1.put("Nov", Integer.valueOf(10));
+      var1.put("Dec", Integer.valueOf(8));
+      var0.addSeriesAsRow("London", var1);
+      DefaultKeyedValues var2 = new DefaultKeyedValues();
+      var2.put("Jan", Integer.valueOf(3));
+      var2.put("Feb", Integer.valueOf(5));
+      var2.put("Mar", Integer.valueOf(9));
+      var2.put("Apr", Integer.valueOf(14));
+      var2.put("May", Integer.valueOf(18));
+      var2.put("Jun", Integer.valueOf(22));
+      var2.put("Jul", Integer.valueOf(25));
+      var2.put("Aug", Integer.valueOf(24));
+      var2.put("Sep", Integer.valueOf(20));
+      var2.put("Oct", Integer.valueOf(14));
+      var2.put("Nov", Integer.valueOf(8));
+      var2.put("Dec", Integer.valueOf(4));
+      var0.addSeriesAsRow("Geneva", var2);
+      DefaultKeyedValues var3 = new DefaultKeyedValues();
+      var3.put("Jan", Integer.valueOf(9));
+      var3.put("Feb", Integer.valueOf(11));
+      var3.put("Mar", Integer.valueOf(13));
+      var3.put("Apr", Integer.valueOf(16));
+      var3.put("May", Integer.valueOf(20));
+      var3.put("Jun", Integer.valueOf(23));
+      var3.put("Jul", Integer.valueOf(26));
+      var3.put("Aug", Integer.valueOf(26));
+      var3.put("Sep", Integer.valueOf(24));
+      var3.put("Oct", Integer.valueOf(19));
+      var3.put("Nov", Integer.valueOf(13));
+      var3.put("Dec", Integer.valueOf(9));
+      var0.addSeriesAsRow("Bergerac", var3);
+      DefaultKeyedValues var4 = new DefaultKeyedValues();
+      var4.put("Jan", Integer.valueOf(22));
+      var4.put("Feb", Integer.valueOf(22));
+      var4.put("Mar", Integer.valueOf(20));
+      var4.put("Apr", Integer.valueOf(17));
+      var4.put("May", Integer.valueOf(14));
+      var4.put("Jun", Integer.valueOf(11));
+      var4.put("Jul", Integer.valueOf(11));
+      var4.put("Aug", Integer.valueOf(12));
+      var4.put("Sep", Integer.valueOf(14));
+      var4.put("Oct", Integer.valueOf(17));
+      var4.put("Nov", Integer.valueOf(19));
+      var4.put("Dec", Integer.valueOf(21));
+      var0.addSeriesAsRow("Christchurch", var4);
+      DefaultKeyedValues var5 = new DefaultKeyedValues();
+      var5.put("Jan", Integer.valueOf(20));
+      var5.put("Feb", Integer.valueOf(20));
+      var5.put("Mar", Integer.valueOf(19));
+      var5.put("Apr", Integer.valueOf(17));
+      var5.put("May", Integer.valueOf(14));
+      var5.put("Jun", Integer.valueOf(12));
+      var5.put("Jul", Integer.valueOf(11));
+      var5.put("Aug", Integer.valueOf(12));
+      var5.put("Sep", Integer.valueOf(13));
+      var5.put("Oct", Integer.valueOf(15));
+      var5.put("Nov", Integer.valueOf(17));
+      var5.put("Dec", Integer.valueOf(19));
+      var0.addSeriesAsRow("Wellington", var5);
+      return var0;
+   }
+}
